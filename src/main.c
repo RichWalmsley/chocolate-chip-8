@@ -1,11 +1,10 @@
-#include "math.h"
 #include "tuibox.h"
 
 #define WIDTH 64
 #define HEIGHT 32
 
-#define BLACK "\x1b[48;2;0;0;0m"
-#define WHITE "\x1b[48;2;255;255;255m"
+#define BLACK "\x1b[48;2;0;0;0m "
+#define WHITE "\x1b[48;2;255;255;255m "
 #define NEWLINE "\x1b[0m\n"
 
 ui_t UI;
@@ -18,14 +17,14 @@ void text(ui_box_t *b, char *out)
 void draw(ui_box_t *b, char *out)
 {
     int x, y;
-  
+
     sprintf(out, "");
 
     for (y = 0; y < b->h; y++)
     {
         for (x = 0; x < b->w; x++)
         {
-            strcat(out, "\x1b[48;2;0;0;0m");
+            strcat(out, WHITE);
         }
         
         strcat(out, "\x1b[0m\n");

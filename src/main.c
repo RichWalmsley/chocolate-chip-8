@@ -1,4 +1,5 @@
 #include "tuibox.h"
+#include "chip8.h"
 
 #define WIDTH 64
 #define HEIGHT 32

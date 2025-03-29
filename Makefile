@@ -2,16 +2,16 @@
 #Date: 2025/03/25
 
 # Variables
-PROJ = chocolate
+EXE = chocolate
 SRC_DIR = src
 INC_DIR = inc
 EXTERN = extern
 BUILD_DIR = build
 BIN_DIR = bin
-TARGET = $(BIN_DIR)/release/$(PROJ)
-DEBUG_TARGET = $(BIN_DIR)/debug/$(PROJ)
+TARGET = $(BIN_DIR)/release/$(EXE)
+DEBUG_TARGET = $(BIN_DIR)/debug/$(EXE)
 CC = gcc
-CFLAGS = -I $(EXTERN) -Wall -Wextra
+CFLAGS = -I $(INC_DIR) -Wall -Wextra
 
 # Gather all source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -20,17 +20,19 @@ OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Create the release executable
 $(TARGET): $(OBJS)
-	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(BIN_DIR)/release
-	@$(CC) $(CFLAGS) $< -o $@ -lm
+	@echo "Linking: $(OBJS)"
+	$(CC) $(OBJS) -o $@ -lm
 
 # Compile source files into object files
-$(BUILD_DIR)/%.o: $(SRCS) $(INCS)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INC_DIR)/*.h 
 	@mkdir -p $(BUILD_DIR)
+	@echo "Compiling $< into $@"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean up
 clean:
+	@echo "Cleaning build and bin directories"
 	@rm -rf $(BUILD_DIR)/* && rm -rf $(BIN_DIR)/*
 
 # Run build

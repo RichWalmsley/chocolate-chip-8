@@ -63,3 +63,113 @@ int load_rom(chip8_t* chip8, char* filename)
 
    return 1;
 }
+
+void chip8_decode(chip8_t* chip8)
+{
+    uint16_t op = chip8->ram[chip8->pc] << 8 | chip8->ram[chip8->pc + 1];
+    uint16_t x = (op & 0x0F00) >> 8;
+    uint16_t y = (op & 0x00F0) >> 4;
+
+    switch (op & 0xF000)
+    {
+        case 0x0000:
+            switch (op & 0x00FF)
+            {
+                // CLEAR: 00E0
+                // Clears the screen
+                case 0x00E0:
+                    // TODO: Implement screen clear
+                    chip8->pc += 2;
+                    break;
+                
+                // RETURN: 00EE
+                // Returns from subroutine
+                case 0x00EE:
+                    chip8->pc = chip8->stack[chip8->sp];
+                    chip8->sp--;
+                    chip8->pc += 2;
+                    break;
+
+                default:
+                    printf("Opcode unknown.");
+                    break;
+            }
+            break;
+
+        // 1NNN: Jumps to address NNN
+        case 0x1000:
+            chip8->pc = op & 0x0FFF;
+            break;
+
+        // 2NNN: Calls subroutine at address NNN
+        case 0x2000:
+            chip8->sp += 1;
+            chip8->stack[chip8->sp] = chip8->pc;
+            chip8->pc = op & 0x0FFF;
+            break;
+
+        // 3XNN: Skips next instruction if V_regx equals NN
+        case 0x3000:
+            if (chip8->V_reg[x] == (op & 0x00FF))
+            {
+                chip8->pc += 2;
+            }
+            break;
+
+        // 4XNN: Skips next instruction if V_regx does not equal NN
+        case 0x4000:
+            if (chip8->V_reg[x] != (op & 0x00FF))
+            {
+                chip8->pc += 2;
+            }
+            break;
+
+        // 5XY0: Skips the next instruction if V_regx equals V_regy
+        case 0x5000:
+            if (chip8->V_reg[x] == chip8->V_reg[y])
+            {
+                chip8->pc += 2;
+            }
+            break;
+
+        // 6XNN: Sets V_regx to NN
+        case 0x6000:
+            chip8->V_reg[x] = (op & 0x00FF);
+            chip8->pc += 2;
+            break;
+
+        // 7XNN: Adds NN to V_regx
+        case 0x7000:
+            chip8->V_reg[x] += (op & 0x00FF);
+            chip8->pc += 2;
+            break;
+
+        // 8XYn: Register operations where n = 1 - 7, E
+        case 0x8000:
+            switch (op & 0x00FF)
+            {
+                // 8XY0: Sets V_regx to V_regy
+                case 0x0000:
+                    chip8->V_reg[x] = chip8->V_reg[y];
+                    chip8->pc += 2;
+                    break;
+
+                // 8XY1: Sets V_regx to V_regx | V_regy
+                case 0x0001:
+                    chip8->V_reg[x] = (chip8->V_reg[x] | chip8->V_reg[y]);
+                    chip8->pc += 2;
+                    break;
+
+                // TODO: Implement remaining cases
+            }
+            break;
+
+        // TODO: Implement 9XY0: Skips the next instruction if V_regx does not equal V_regy
+
+        // ANNN: Sets I to address NNN
+        case 0xA000:
+            chip8->I_reg = (op & 0x0FFF);
+            chip8->pc += 2;
+            break;
+    }
+}

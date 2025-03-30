@@ -67,7 +67,10 @@ int load_rom(chip8_t* chip8, char* filename)
 
 void chip8_cycle(chip8_t* chip8)
 {
+    // Fetch operation at pc location in ram. Combining two "bytes" together.
     uint16_t op = chip8->ram[chip8->pc] << 8 | chip8->ram[chip8->pc + 1];
+
+    // Fetch x and y registers.
     uint16_t x = (op & 0x0F00) >> 8;
     uint16_t y = (op & 0x00F0) >> 4;
 

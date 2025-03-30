@@ -26,13 +26,13 @@ void draw(ui_box_t *b, char *out)
     {
         for (x = 0; x < b->w; x++)
         {
-            if (d_buf[y * b->w + x] == 0x0)
+            if (d_buf[y * b->w + x] == 0x1)
             {
-                strcat(out, BLACK);
+                strcat(out, WHITE);
             }
             else
             {
-                strcat(out, WHITE);
+                strcat(out, BLACK);
             }
         }
         

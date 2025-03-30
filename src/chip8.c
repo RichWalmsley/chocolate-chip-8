@@ -200,6 +200,7 @@ void chip8_cycle(chip8_t* chip8)
             // Set collision flag to 0
             chip8->V_reg[0xF] = 0;
 
+            // For each row
             for (int d_y = 0; d_y < height; d_y++)
             {
                 // Fetch pixel value from ram starting at address in I_reg
@@ -216,10 +217,10 @@ void chip8_cycle(chip8_t* chip8)
                         {
                             chip8->V_reg[0xF] = 1;
                         }
-                    }
 
-                    // Set pixel value of sprite at (x,y) coordinate using XOR
-                    chip8->display_buffer[chip8->V_reg[x] + d_x + ((chip8->V_reg[y] + d_y) * WIDTH)] ^= 1;
+                        // Set pixel value of sprite at (x,y) coordinate using XOR
+                        chip8->display_buffer[chip8->V_reg[x] + d_x + ((chip8->V_reg[y] + d_y) * WIDTH)] ^= 1;
+                    }
                 }
             }
 

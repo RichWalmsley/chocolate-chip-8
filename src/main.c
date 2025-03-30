@@ -18,6 +18,7 @@ void text(ui_box_t *b, char *out)
 void draw(ui_box_t *b, char *out)
 {
     int x, y;
+    uint8_t *d_buf = (uint8_t *) b->data1;
 
     sprintf(out, "");
 
@@ -25,7 +26,14 @@ void draw(ui_box_t *b, char *out)
     {
         for (x = 0; x < b->w; x++)
         {
-            strcat(out, WHITE);
+            if (d_buf[y * b->w + x] == 0x0)
+            {
+                strcat(out, BLACK);
+            }
+            else
+            {
+                strcat(out, WHITE);
+            }
         }
         
         strcat(out, NEWLINE); 
@@ -51,7 +59,7 @@ int main()
             return 0;
         
         case 0:
-            printf("File \"%s\" not found.\n");
+            printf("File \"%s\" not found.\n", ROM);
             return 0;
         
         case 1:
@@ -59,7 +67,12 @@ int main()
             break;
     }
 
-    //chip8_print_mem(&emulator);
+    /*
+    for (int i = 0; i < 20; i++){
+        print_mem(emulator.display_buffer, HEIGHT, WIDTH);
+        chip8_cycle(&emulator);
+    }
+    */
 
     ui_new(0, &UI);
     
@@ -73,7 +86,7 @@ int main()
         draw,
         NULL,
         NULL,
-        NULL,
+        (void *) emulator.display_buffer,
         NULL,
         &UI        
     );

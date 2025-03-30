@@ -200,26 +200,26 @@ void chip8_cycle(chip8_t* chip8)
             // Set collision flag to 0
             chip8->V_reg[0xF] = 0;
 
-            for (int y = 0; y < height; y++)
+            for (int d_y = 0; d_y < height; d_y++)
             {
                 // Fetch pixel value from ram starting at address in I_reg
-                px = chip8->ram[chip8->I_reg + y];
+                px = chip8->ram[chip8->I_reg + d_y];
 
                 // For each of the 8 bits in the sprite row
-                for (int x = 0; x < 8; x++)
+                for (int d_x = 0; d_x < 8; d_x++)
                 {
                     // Scan through the byte and check if pixels are set
-                    if ((px & (0x80 >> x)) != 0)
+                    if ((px & (0x80 >> d_x)) != 0)
                     {
                         // If drawing erases pixels, set the collision flag
-                        if (chip8->display_buffer[(chip8->V_reg[x] + x + ((chip8->V_reg[y] + y) * WIDTH))] == 1)
+                        if (chip8->display_buffer[(chip8->V_reg[x] + d_x + ((chip8->V_reg[y] + d_y) * WIDTH))] == 1)
                         {
                             chip8->V_reg[0xF] = 1;
                         }
                     }
 
                     // Set pixel value of sprite at (x,y) coordinate using XOR
-                    chip8->display_buffer[chip8->V_reg[x] + x + ((chip8->V_reg[y] + y) * WIDTH)] ^= 1;
+                    chip8->display_buffer[chip8->V_reg[x] + d_x + ((chip8->V_reg[y] + d_y) * WIDTH)] ^= 1;
                 }
             }
 
@@ -265,14 +265,19 @@ void chip8_cycle(chip8_t* chip8)
 }
 
 // Function to print memory. For debugging purposes.
-void chip8_print_mem(chip8_t* chip8)
+void print_mem(uint8_t* buffer, uint8_t height, uint8_t width)
 {
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < 32; j++)
+        for (int j = 0; j < width; j++)
         {
-            printf("0x%X ", chip8->ram[i * 32 + j]);
+            printf("%X ", buffer[i * height + j]);
         }
         printf("\n");
     }
+    for (int i = 0; i < width; i++)
+    {
+        printf("-");
+    }
+    printf("\n");
 }

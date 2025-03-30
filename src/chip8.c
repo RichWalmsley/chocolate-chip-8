@@ -65,7 +65,7 @@ int load_rom(chip8_t* chip8, char* filename)
    return 1;
 }
 
-void chip8_decode(chip8_t* chip8)
+void chip8_cycle(chip8_t* chip8)
 {
     uint16_t op = chip8->ram[chip8->pc] << 8 | chip8->ram[chip8->pc + 1];
     uint16_t x = (op & 0x0F00) >> 8;
@@ -92,7 +92,7 @@ void chip8_decode(chip8_t* chip8)
                     break;
 
                 default:
-                    printf("Opcode unknown.");
+                    printf("Opcode unknown.\n");
                     break;
             }
             break;
@@ -162,6 +162,10 @@ void chip8_decode(chip8_t* chip8)
                     break;
 
                 // TODO: Implement remaining cases
+                
+                default:
+                    printf("Opcode unknown.\n");
+                    break;
             }
             break;
 
@@ -187,9 +191,7 @@ void chip8_decode(chip8_t* chip8)
         // DXYN: Draw N pixels tall sprite from memory location that I register is holding to screen
         // V_regx holds x value and V_regy holds y value.          
         case 0xD000:
-            // Extract x coord, y coord and sprite height
-            uint8_t x_coord = chip8->V_reg[(op & 0x0F00) >> 8] % WIDTH;
-            uint8_t y_coord = chip8->V_reg[(op & 0x00F0) >> 4] % HEIGHT;
+            // Extract sprite height
             uint16_t height = (op & 0x000F);
 
             // Temp pixel
@@ -210,14 +212,14 @@ void chip8_decode(chip8_t* chip8)
                     if ((px & (0x80 >> x)) != 0)
                     {
                         // If drawing erases pixels, set the collision flag
-                        if (chip8->display_buffer[(x_coord + x + ((y_coord + y) * WIDTH))] == 1)
+                        if (chip8->display_buffer[(chip8->V_reg[x] + x + ((chip8->V_reg[y] + y) * WIDTH))] == 1)
                         {
                             chip8->V_reg[0xF] = 1;
                         }
                     }
 
                     // Set pixel value of sprite at (x,y) coordinate using XOR
-                    chip8->display_buffer[x_coord + x + ((y_coord + y) * WIDTH)] ^= 1;
+                    chip8->display_buffer[chip8->V_reg[x] + x + ((chip8->V_reg[y] + y) * WIDTH)] ^= 1;
                 }
             }
 
@@ -237,6 +239,27 @@ void chip8_decode(chip8_t* chip8)
                 case 0x00A1:
                     // TODO: Implement EXA1
                     break;
+                
+                default:
+                    printf("Opcode unknown.\n");
+                    break;
             }
+
+        // TODO: Implement remaining instructions
+
+        default:
+            printf("Opcode unknown.\n");
+            break;
+    }
+
+    // Update timers. Decrement timers if they are greater than 0.
+    if (chip8->delay_timer > 0)
+    {
+        chip8->delay_timer -= 1;
+    }
+
+    if (chip8->sound_timer > 0)
+    {
+        chip8->sound_timer -= 1;
     }
 }

@@ -1,11 +1,14 @@
 #include "tuibox.h"
 #include "chip8.h"
 
+#define ROM "/roms/IBM Logo.ch8"
+
 #define BLACK "\x1b[48;2;0;0;0m "
 #define WHITE "\x1b[48;2;255;255;255m "
 #define NEWLINE "\x1b[0m\n"
 
 ui_t UI;
+chip8_t emulator;
 
 void text(ui_box_t *b, char *out)
 {
@@ -37,6 +40,9 @@ void stop()
 
 int main()
 {
+    chip8_init(&emulator);
+    load_rom(&emulator, ROM);
+
     ui_new(0, &UI);
     
     ui_add(
@@ -54,12 +60,13 @@ int main()
         &UI        
     );
 
-    ui_key("q", stop, &UI);
+    ui_key("\e", stop, &UI);
 
     ui_draw(&UI);
 
     ui_loop(&UI)
     {
+        chip8_cycle(&emulator);
         ui_update(&UI);
     }
 

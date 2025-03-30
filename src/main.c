@@ -1,9 +1,6 @@
 #include "tuibox.h"
 #include "chip8.h"
 
-#define WIDTH 64
-#define HEIGHT 32
-
 #define BLACK "\x1b[48;2;0;0;0m "
 #define WHITE "\x1b[48;2;255;255;255m "
 #define NEWLINE "\x1b[0m\n"

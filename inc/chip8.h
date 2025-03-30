@@ -3,15 +3,17 @@
 
 #include "stdint.h"
 
+#define HEIGHT 32
+#define WIDTH 64
+
 typedef struct chip8
 {
     char* filename;
     uint8_t ram[4096];
-    uint8_t display_buffer[256];
+    uint8_t display_buffer[HEIGHT * WIDTH];
     uint16_t pc;
     uint8_t sp;
     uint16_t I_reg;
-    uint16_t op;
     uint8_t V_reg[16];
     uint16_t stack[16];
     uint8_t delay_timer;

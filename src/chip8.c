@@ -1,6 +1,7 @@
 #include "chip8.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 const uint8_t fontset[] =
@@ -171,5 +172,71 @@ void chip8_decode(chip8_t* chip8)
             chip8->I_reg = (op & 0x0FFF);
             chip8->pc += 2;
             break;
+
+        // BNNN: Jump to NNN plus V_reg0
+        case 0xB000:
+            chip8->pc = (op & 0x0FFF) + chip8->V_reg[0];
+            break;
+
+        // CXNN: Set V_regx to a random number AND with value NN
+        case 0xC000:
+            chip8->V_reg[x] = (rand() % 256) & (op & 0x00FF);
+            chip8->pc += 2;
+            break;
+
+        // DXYN: Draw N pixels tall sprite from memory location that I register is holding to screen
+        // V_regx holds x value and V_regy holds y value.          
+        case 0xD000:
+            // Extract x coord, y coord and sprite height
+            uint8_t x_coord = chip8->V_reg[(op & 0x0F00) >> 8] % WIDTH;
+            uint8_t y_coord = chip8->V_reg[(op & 0x00F0) >> 4] % HEIGHT;
+            uint16_t height = (op & 0x000F);
+
+            // Temp pixel
+            uint16_t px;
+
+            // Set collision flag to 0
+            chip8->V_reg[0xF] = 0;
+
+            for (int y = 0; y < height; y++)
+            {
+                // Fetch pixel value from ram starting at address in I_reg
+                px = chip8->ram[chip8->I_reg + y];
+
+                // For each of the 8 bits in the sprite row
+                for (int x = 0; x < 8; x++)
+                {
+                    // Scan through the byte and check if pixels are set
+                    if ((px & (0x80 >> x)) != 0)
+                    {
+                        // If drawing erases pixels, set the collision flag
+                        if (chip8->display_buffer[(x_coord + x + ((y_coord + y) * WIDTH))] == 1)
+                        {
+                            chip8->V_reg[0xF] = 1;
+                        }
+                    }
+
+                    // Set pixel value of sprite at (x,y) coordinate using XOR
+                    chip8->display_buffer[x_coord + x + ((y_coord + y) * WIDTH)] ^= 1;
+                }
+            }
+
+            chip8->pc += 2;
+            break;
+    
+        // E09E and E0A1
+        case 0xE000:
+            switch (op & 0x00FF)
+            {
+                // EX9E: Skips next instruction if the key stored in V_regx is pressed
+                case 0x009E:
+                    // TODO: Implement EX9E
+                    break;
+                
+                // EXA1: Skips next instruction if the key stored in V_regx isn't pressed
+                case 0x00A1:
+                    // TODO: Implement EXA1
+                    break;
+            }
     }
 }

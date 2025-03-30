@@ -92,7 +92,7 @@ void chip8_cycle(chip8_t* chip8)
                     break;
 
                 default:
-                    printf("Opcode unknown.\n");
+                    printf("Opcode unknown: 0x%X.\n", op);
                     break;
             }
             break;
@@ -164,7 +164,7 @@ void chip8_cycle(chip8_t* chip8)
                 // TODO: Implement remaining cases
                 
                 default:
-                    printf("Opcode unknown.\n");
+                    printf("Opcode unknown: 0x%X.\n", op);
                     break;
             }
             break;
@@ -241,14 +241,14 @@ void chip8_cycle(chip8_t* chip8)
                     break;
                 
                 default:
-                    printf("Opcode unknown.\n");
+                    printf("Opcode unknown: 0x%X.\n", op);
                     break;
             }
 
         // TODO: Implement remaining instructions
 
         default:
-            printf("Opcode unknown.\n");
+            printf("Opcode unknown: 0x%X.\n", op);
             break;
     }
 
@@ -261,5 +261,18 @@ void chip8_cycle(chip8_t* chip8)
     if (chip8->sound_timer > 0)
     {
         chip8->sound_timer -= 1;
+    }
+}
+
+// Function to print memory. For debugging purposes.
+void chip8_print_mem(chip8_t* chip8)
+{
+    for (int i = 0; i < 64; i++)
+    {
+        for (int j = 0; j < 32; j++)
+        {
+            printf("0x%X ", chip8->ram[i * 32 + j]);
+        }
+        printf("\n");
     }
 }

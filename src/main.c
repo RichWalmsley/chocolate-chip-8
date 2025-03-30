@@ -1,7 +1,7 @@
 #include "tuibox.h"
 #include "chip8.h"
 
-#define ROM "/roms/IBM Logo.ch8"
+#define ROM "roms/IBM Logo.ch8"
 
 #define BLACK "\x1b[48;2;0;0;0m "
 #define WHITE "\x1b[48;2;255;255;255m "
@@ -28,7 +28,7 @@ void draw(ui_box_t *b, char *out)
             strcat(out, WHITE);
         }
         
-        strcat(out, "\x1b[0m\n");
+        strcat(out, NEWLINE); 
     }
 }
 
@@ -41,7 +41,25 @@ void stop()
 int main()
 {
     chip8_init(&emulator);
-    load_rom(&emulator, ROM);
+
+    printf("Loading ROM file: %s\n", ROM);
+    int error = load_rom(&emulator, ROM);
+    switch(error)
+    {
+        case -1:
+            printf("Byte read mismatch from ROM file.\n");
+            return 0;
+        
+        case 0:
+            printf("File does not exist.\n");
+            return 0;
+        
+        case 1:
+            printf("Loaded ROM file \"%s\" successfully.\n", ROM);
+            break;
+    }
+
+    //chip8_print_mem(&emulator);
 
     ui_new(0, &UI);
     
@@ -60,7 +78,7 @@ int main()
         &UI        
     );
 
-    ui_key("\e", stop, &UI);
+    ui_key("p", stop, &UI);
 
     ui_draw(&UI);
 

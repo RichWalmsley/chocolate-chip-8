@@ -8,7 +8,6 @@
 
 typedef struct chip8
 {
-    char* filename;
     uint8_t ram[4096];
     uint8_t display_buffer[HEIGHT * WIDTH];
     uint16_t pc;
@@ -22,9 +21,7 @@ typedef struct chip8
 
 void chip8_init(chip8_t* chip8);
 int load_rom(chip8_t* chip8, char* filename);
-void chip8_fetch(chip8_t* chip8);
-void chip8_decode(chip8_t* chip8);
-void chip8_execute(chip8_t* chip8);
 void chip8_cycle(chip8_t* chip8);
+void chip8_print_mem(chip8_t* chip8);
 
 #endif

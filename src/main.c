@@ -51,7 +51,7 @@ int main()
             return 0;
         
         case 0:
-            printf("File does not exist.\n");
+            printf("File \"%s\" not found.\n");
             return 0;
         
         case 1:

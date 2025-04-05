@@ -17,18 +17,34 @@ CFLAGS = -I $(INC_DIR) -Wall -Wextra
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 INCS = $(wildcard $(INC_DIR)/*.h)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
+DEBUG_OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/debug/%.o, $(SRCS))
 
 # Create the release executable
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)/release
-	@echo "Linking: $(OBJS)"
+	@echo "Linking: $<"
 	$(CC) $(OBJS) -o $@ -lm
+
+# Create debug executable
+$(DEBUG_TARGET): $(DEBUG_OBJS)
+	@mkdir -p $(BIN_DIR)/debug
+	@echo "Linking $(DEBUG_OBJS)"
+	$(CC) $(DEBUG_OBJS) -o $@ -lm
 
 # Compile source files into object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INC_DIR)/*.h 
 	@mkdir -p $(BUILD_DIR)
 	@echo "Compiling $< into $@"
 	@$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile source files into debug object files
+$(BUILD_DIR)/debug/%.o: $(SRC_DIR)/%.c $(INC_DIR)/*.h
+	@mkdir -p $(BUILD_DIR)/debug
+	@echo "Compiling $< into $@ (debug)"
+	@$(CC) $(CFLAGS) -g -c $< -o $@
+
+debug: $(DEBUG_TARGET)
+	@gdb -tui $<
 
 # Clean up
 clean:
@@ -44,6 +60,7 @@ show:
 	@echo "Sources: $(SRCS)"
 	@echo "Includes: $(INCS)"
 	@echo "Objects: $(OBJS)"
+	@echo "Debug Objects: $(DEBUG_OBJS)"
 
 # Phony targets
 .PHONY: all clean run show

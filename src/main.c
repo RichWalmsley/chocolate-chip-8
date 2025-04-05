@@ -19,7 +19,6 @@ void draw(ui_box_t *b, char *out)
 {
     int x, y;
     uint8_t *d_buf = (uint8_t *) b->data1;
-
     sprintf(out, "");
 
     for (y = 0; y < b->h; y++)
@@ -35,8 +34,7 @@ void draw(ui_box_t *b, char *out)
                 strcat(out, BLACK);
             }
         }
-        
-        strcat(out, NEWLINE); 
+        strcat(out, NEWLINE);
     }
 }
 
@@ -67,13 +65,6 @@ int main()
             break;
     }
 
-    /*
-    for (int i = 0; i < 20; i++){
-        print_mem(emulator.display_buffer, HEIGHT, WIDTH);
-        chip8_cycle(&emulator);
-    }
-    */
-
     ui_new(0, &UI);
     
     ui_add(
@@ -82,7 +73,7 @@ int main()
         WIDTH,
         HEIGHT,
         0,
-        NULL, 0,
+        NULL, 0, 
         draw,
         NULL,
         NULL,
@@ -98,6 +89,7 @@ int main()
     ui_loop(&UI)
     {
         chip8_cycle(&emulator);
+        ui_draw(&UI);
         ui_update(&UI);
     }
 

@@ -1,4 +1,7 @@
-#include "tuibox.h"
+#include <ncurses.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "chip8.h"
 
 #define ROM "roms/IBM Logo.ch8"
@@ -7,42 +10,7 @@
 #define WHITE "\x1b[48;2;255;255;255m "
 #define NEWLINE "\x1b[0m\n"
 
-ui_t UI;
 chip8_t emulator;
-
-void text(ui_box_t *b, char *out)
-{
-    sprintf(out, "%s", (char*)b->data1);
-}
-
-void draw(ui_box_t *b, char *out)
-{
-    int x, y;
-    uint8_t *d_buf = (uint8_t *) b->data1;
-    sprintf(out, "");
-
-    for (y = 0; y < b->h; y++)
-    {
-        for (x = 0; x < b->w; x++)
-        {
-            if (d_buf[y * b->w + x] == 0x1)
-            {
-                strcat(out, WHITE);
-            }
-            else
-            {
-                strcat(out, BLACK);
-            }
-        }
-        strcat(out, NEWLINE);
-    }
-}
-
-void stop()
-{
-    ui_free(&UI);
-    exit(0);
-}
 
 int main()
 {
@@ -65,32 +33,26 @@ int main()
             break;
     }
 
-    ui_new(0, &UI);
-    
-    ui_add(
-        1,
-        1,
-        WIDTH,
-        HEIGHT,
-        0,
-        NULL, 0, 
-        draw,
-        NULL,
-        NULL,
-        (void *) emulator.display_buffer,
-        NULL,
-        &UI        
-    );
+    initscr();
+    cbreak();
+    noecho();
+    clear();
+    refresh();
 
-    ui_key("p", stop, &UI);
+    move(5,5);
 
-    ui_draw(&UI);
-
-    ui_loop(&UI)
+    char *text = "Hello, World!";
+    for (int i = 0; i < strlen(text); i++)
     {
-        chip8_cycle(&emulator);
-        ui_draw(&UI);
-        ui_update(&UI);
+        addch(text[i]);
+        addch(' ');
+    }
+
+    refresh();
+
+    while(1)
+    {
+
     }
 
     return 0;

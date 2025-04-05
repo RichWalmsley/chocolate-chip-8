@@ -23,13 +23,13 @@ DEBUG_OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/debug/%.o, $(SRCS))
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)/release
 	@echo "Linking: $<"
-	$(CC) $(OBJS) -o $@ -lm
+	$(CC) $(OBJS) -o $@ -lm -lncurses
 
 # Create debug executable
 $(DEBUG_TARGET): $(DEBUG_OBJS)
 	@mkdir -p $(BIN_DIR)/debug
 	@echo "Linking $(DEBUG_OBJS)"
-	$(CC) $(DEBUG_OBJS) -o $@ -lm
+	$(CC) $(DEBUG_OBJS) -o $@ -lm -lncurses
 
 # Compile source files into object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INC_DIR)/*.h 

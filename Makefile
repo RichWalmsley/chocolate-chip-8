@@ -11,7 +11,7 @@ BIN_DIR = bin
 TARGET = $(BIN_DIR)/release/$(EXE)
 DEBUG_TARGET = $(BIN_DIR)/debug/$(EXE)
 CC = gcc
-CFLAGS = -I $(INC_DIR) -Wall -Wextra
+CFLAGS = -I $(INC_DIR) -Wall -Wextra -Werror
 
 # Gather all source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)

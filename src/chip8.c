@@ -24,12 +24,13 @@ const uint8_t fontset[] =
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-void chip8_init(chip8_t* chip8)
+void chip8_init(chip8_t* chip8, uint16_t* keypad)
 {
     memset(chip8->ram, 0, sizeof(chip8->ram));
     memset(chip8->display_buffer, 0, sizeof(chip8->display_buffer));
     memset(chip8->V_reg, 0, sizeof(chip8->V_reg));
     chip8->I_reg = 0;
+    chip8->keypad = keypad;
     chip8->delay_timer = 0;
     chip8->sound_timer = 0;
     chip8->pc = 0x200;
@@ -116,6 +117,10 @@ void chip8_cycle(chip8_t* chip8)
         case 0x3000:
             if (chip8->V_reg[x] == (op & 0x00FF))
             {
+                chip8->pc += 4;
+            }
+            else
+            {
                 chip8->pc += 2;
             }
             break;
@@ -124,6 +129,10 @@ void chip8_cycle(chip8_t* chip8)
         case 0x4000:
             if (chip8->V_reg[x] != (op & 0x00FF))
             {
+                chip8->pc += 4;
+            }
+            else
+            {
                 chip8->pc += 2;
             }
             break;
@@ -131,6 +140,10 @@ void chip8_cycle(chip8_t* chip8)
         // 5XY0: Skips the next instruction if V_regx equals V_regy
         case 0x5000:
             if (chip8->V_reg[x] == chip8->V_reg[y])
+            {
+                chip8->pc += 4;
+            }
+            else
             {
                 chip8->pc += 2;
             }
@@ -180,12 +193,12 @@ void chip8_cycle(chip8_t* chip8)
                 case 0x0004:
                     if ( chip8->V_reg[x] + chip8->V_reg[y] > 0xFF )
                     {
-                        chip8->V_reg[15] = 1;
+                        chip8->V_reg[0xF] = 1;
                         chip8->V_reg[x] = ( chip8->V_reg[x] + chip8->V_reg[y] ) & 0xFF;
                     }
                     else
                     {
-                        chip8->V_reg[15] = 0;
+                       chip8->V_reg[0xF] = 0;
                         chip8->V_reg[x] = ( chip8->V_reg[x] + chip8->V_reg[y] ) & 0xFF;
                     }
 
@@ -196,11 +209,11 @@ void chip8_cycle(chip8_t* chip8)
                 case 0x0005:
                     if ( chip8->V_reg[x] > chip8->V_reg[y] )
                     {
-                        chip8->V_reg[15] = 1;
+                        chip8->V_reg[0xF] = 0;
                     }
                     else
                     {
-                        chip8->V_reg[15] = 0;
+                        chip8->V_reg[0xF] = 1;
                     }
 
                     chip8->V_reg[x] = chip8->V_reg[x] - chip8->V_reg[y];
@@ -211,11 +224,11 @@ void chip8_cycle(chip8_t* chip8)
                 case 0x0006:
                     if ( chip8->V_reg[x] & 0x01 )
                     {
-                        chip8->V_reg[15] = 1;
+                        chip8->V_reg[0xF] = 1;
                     }
                     else
                     {
-                        chip8->V_reg[15] = 0;
+                        chip8->V_reg[0xF] = 0;
                     }
 
                     chip8->V_reg[x] /= 2;
@@ -226,11 +239,11 @@ void chip8_cycle(chip8_t* chip8)
                 case 0x0007:
                     if ( chip8->V_reg[y] > chip8->V_reg[x] )
                     {
-                        chip8->V_reg[15] = 1; 
+                        chip8->V_reg[0xF] = 0; 
                     }
                     else
                     {
-                        chip8->V_reg[15] = 0;
+                        chip8->V_reg[0xF] = 1;
                     }
 
                     chip8->V_reg[x] = chip8->V_reg[y] - chip8->V_reg[x];
@@ -241,11 +254,11 @@ void chip8_cycle(chip8_t* chip8)
                 case 0x000E:
                     if ( chip8->V_reg[x] & 0x80 )
                     {
-                        chip8->V_reg[15] = 1;
+                        chip8->V_reg[0xF] = 1;
                     }
                     else
                     {
-                        chip8->V_reg[15] = 0;
+                        chip8->V_reg[0xF] = 0;
                     }
 
                     chip8->V_reg[x] *= 2;
@@ -332,20 +345,113 @@ void chip8_cycle(chip8_t* chip8)
             {
                 // EX9E: Skips next instruction if the key stored in V_regx is pressed
                 case 0x009E:
-                    // TODO: Implement EX9E
+                    if ( chip8->keypad[chip8->V_reg[x]] )
+                    {
+                        chip8->pc += 4;
+                    }
                     break;
                 
                 // EXA1: Skips next instruction if the key stored in V_regx isn't pressed
                 case 0x00A1:
-                    // TODO: Implement EXA1
+                    if ( !chip8->keypad[chip8->V_reg[x]] )
+                    {
+                        chip8->pc += 4;
+                    }
                     break;
                 
                 default:
                     printf("Opcode unknown: 0x%X.\n", op);
                     break;
             }
+            break;
 
-        // TODO: Implement remaining instructions
+        // 0xFXNN
+        case 0xF000:
+            switch ( op & 0x00FF )
+            {
+                // FX07: Set V_regx to delay timer value
+                case 0x0007:
+                    chip8->V_reg[x] = chip8->delay_timer;
+                    chip8->pc += 2;
+                    break;
+                
+                // FX0A: Wait for a key press, store the value of the key in V_regx
+                case 0x000A:
+                    if ( *chip8->keypad )
+                    {
+                        for ( uint8_t i = 0; i < 15; i++ )
+                        {
+                            // We shift a mask across the bitmap for the keypad to check if bits are 1
+                            // We store the index value of the first bit that is 1 in V_regx
+                            if ( *chip8->keypad & ( 1 << i ) )
+                            {
+                                chip8->V_reg[x] = i;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                    
+                    chip8->pc += 2;
+                    break;
+                
+                // FX15: Set delay timer to V_regx
+                case 0x0015:
+                    chip8->delay_timer = chip8->V_reg[x];
+                    chip8->pc += 2;
+                    break;
+                
+                // FX18: Set sound timer to V_regx
+                case 0x0018:
+                    chip8->sound_timer = chip8->V_reg[x];
+                    chip8->pc += 2;
+                    break;
+                
+                // FX1E: Set I_reg to I_reg + V_regx
+                case 0x001E:
+                    chip8->I_reg = chip8->I_reg + chip8->V_reg[x];
+                    chip8->pc += 2;
+                    break;
+                
+                // FX29: Set I_reg to the location of the sprite corresponding to the value of V_regx
+                case 0x0029:
+                     chip8->I_reg = chip8->V_reg[x];
+                     chip8->pc += 2;
+                     break;
+                
+                // FX33:
+                case 0x0033:
+                    chip8->ram[chip8->I_reg] = chip8->V_reg[x] / 100;
+                    chip8->ram[chip8->I_reg + 1] = chip8->V_reg[x] / 10;
+                    chip8->ram[chip8->I_reg + 2] = chip8->V_reg[x] % 10;
+                    chip8->pc += 2;
+                    break;
+
+                // FX55: Copies the values of registers V_reg0 to V_regx into memory starting at the address in I_reg
+                case 0x0055:
+                    for ( uint8_t i = 0; i <= x; i++ )
+                    {
+                        chip8->ram[chip8->I_reg + i] = chip8->V_reg[i];
+                    }
+                    chip8->pc += 2;
+                    break;
+                    
+                // FX65: Copies the values of from memory starting at the address in I_reg into registers V_reg0 to V_regx
+                case 0x0065:
+                    for ( uint8_t i = 0; i <= x; i++ )
+                    {
+                        chip8->V_reg[i] = chip8->ram[chip8->I_reg + i];
+                    }
+                    chip8->pc += 2;
+                    break;
+                
+                default:
+                    printf("Opcode unknown: 0x%X.\n", op);
+                    break;
+            }
+            break;
 
         default:
             printf("Opcode unknown: 0x%X.\n", op);

@@ -148,9 +148,9 @@ void chip8_cycle(chip8_t* chip8)
             chip8->pc += 2;
             break;
 
-        // 8XYn: Register operations where n = 1 - 7, E
+        // 8XYn: Register operations where n = 1 - 7
         case 0x8000:
-            switch (op & 0x00FF)
+            switch (op & 0x000F)
             {
                 // 8XY0: Sets V_regx to V_regy
                 case 0x0000:
@@ -163,16 +163,112 @@ void chip8_cycle(chip8_t* chip8)
                     chip8->V_reg[x] = (chip8->V_reg[x] | chip8->V_reg[y]);
                     chip8->pc += 2;
                     break;
-
-                // TODO: Implement remaining cases
                 
+                // 8XY2: Sets V_regx to V_regx & V_regy
+                case 0x0002:
+                    chip8->V_reg[x] = (chip8->V_reg[x]) & chip8->V_reg[y];
+                    chip8->pc += 2;
+                    break;
+                
+                // 8XY3: Sets V_regx to V_regx ^ V_regy
+                case 0x0003:
+                    chip8->V_reg[x] = (chip8->V_reg[x]) ^ chip8->V_reg[y];
+                    chip8->pc += 2;
+                    break;
+
+                // 8XY4: Sets V_regx to V_regx + V_regy. Set V_regf = carry
+                case 0x0004:
+                    if ( chip8->V_reg[x] + chip8->V_reg[y] > 0xFF )
+                    {
+                        chip8->V_reg[15] = 1;
+                        chip8->V_reg[x] = ( chip8->V_reg[x] + chip8->V_reg[y] ) & 0xFF;
+                    }
+                    else
+                    {
+                        chip8->V_reg[15] = 0;
+                        chip8->V_reg[x] = ( chip8->V_reg[x] + chip8->V_reg[y] ) & 0xFF;
+                    }
+
+                    chip8->pc += 2;
+                    break;
+                
+                // 8XY5: Sets V_regx to V_regx + V_regy. Set V_regf = !borrow
+                case 0x0005:
+                    if ( chip8->V_reg[x] > chip8->V_reg[y] )
+                    {
+                        chip8->V_reg[15] = 1;
+                    }
+                    else
+                    {
+                        chip8->V_reg[15] = 0;
+                    }
+
+                    chip8->V_reg[x] = chip8->V_reg[x] - chip8->V_reg[y];
+                    chip8->pc += 2;
+                    break;
+                
+                // 8XY6: Set V_regx to V_regx shifted right 1
+                case 0x0006:
+                    if ( chip8->V_reg[x] & 0x01 )
+                    {
+                        chip8->V_reg[15] = 1;
+                    }
+                    else
+                    {
+                        chip8->V_reg[15] = 0;
+                    }
+
+                    chip8->V_reg[x] /= 2;
+                    chip8->pc += 2;
+                    break;
+                
+                // 8XY7: Set V_regx to V_regy - V_regx. Set V_regf = !borrow
+                case 0x0007:
+                    if ( chip8->V_reg[y] > chip8->V_reg[x] )
+                    {
+                        chip8->V_reg[15] = 1; 
+                    }
+                    else
+                    {
+                        chip8->V_reg[15] = 0;
+                    }
+
+                    chip8->V_reg[x] = chip8->V_reg[y] - chip8->V_reg[x];
+                    chip8->pc += 2;
+                    break;
+                
+                // 8XYE: Set V_regx to V_regx shifted left 1
+                case 0x000E:
+                    if ( chip8->V_reg[x] & 0x80 )
+                    {
+                        chip8->V_reg[15] = 1;
+                    }
+                    else
+                    {
+                        chip8->V_reg[15] = 0;
+                    }
+
+                    chip8->V_reg[x] *= 2;
+                    chip8->pc += 2;
+                    break;
+                    
                 default:
                     printf("Opcode unknown: 0x%X.\n", op);
                     break;
             }
             break;
 
-        // TODO: Implement 9XY0: Skips the next instruction if V_regx does not equal V_regy
+        // 9XY0: Skips the next instruction if V_regx does not equal V_regy
+        case 0x9000:
+            if ( chip8->V_reg[x] != chip8->V_reg[y] )
+            {
+                chip8->pc += 4;
+            }
+            else
+            {
+                chip8->pc += 2;
+            }
+            break;
 
         // ANNN: Sets I to address NNN
         case 0xA000:

@@ -44,7 +44,7 @@ $(BUILD_DIR)/debug/%.o: $(SRC_DIR)/%.c $(INC_DIR)/*.h
 	@$(CC) $(CFLAGS) -g -c $< -o $@
 
 debug: $(DEBUG_TARGET)
-	@gdb -tui $<
+	gdb -tui $<
 
 # Clean up
 clean:

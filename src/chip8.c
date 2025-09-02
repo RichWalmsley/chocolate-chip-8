@@ -24,7 +24,7 @@ const uint8_t fontset[] =
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-void chip8_init(chip8_t* chip8, uint16_t* keypad)
+void chip8_init(chip8_t* chip8, const uint8_t* keypad)
 {
     memset(chip8->ram, 0, sizeof(chip8->ram));
     memset(chip8->display_buffer, 0, sizeof(chip8->display_buffer));
@@ -78,12 +78,12 @@ void chip8_cycle(chip8_t* chip8)
     switch (op & 0xF000)
     {
         case 0x0000:
-            switch (op & 0x00FF)
+            switch (op & 0x0FFF)
             {
                 // CLEAR: 00E0
                 // Clears the screen
                 case 0x00E0:
-                    // TODO: Implement screen clear
+                    memset(chip8->display_buffer, 0, sizeof(chip8->display_buffer));
                     chip8->pc += 2;
                     break;
                 
@@ -345,17 +345,25 @@ void chip8_cycle(chip8_t* chip8)
             {
                 // EX9E: Skips next instruction if the key stored in V_regx is pressed
                 case 0x009E:
-                    if ( chip8->keypad[chip8->V_reg[x]] )
+                    if ( chip8->keypad[chip8->V_reg[x]] != 0 )
                     {
                         chip8->pc += 4;
+                    }
+                    else
+                    {
+                        chip8->pc += 2;
                     }
                     break;
                 
                 // EXA1: Skips next instruction if the key stored in V_regx isn't pressed
                 case 0x00A1:
-                    if ( !chip8->keypad[chip8->V_reg[x]] )
+                    if ( chip8->keypad[chip8->V_reg[x]] == 0 )
                     {
                         chip8->pc += 4;
+                    }
+                    else
+                    {
+                        chip8->pc += 2;
                     }
                     break;
                 
@@ -376,24 +384,24 @@ void chip8_cycle(chip8_t* chip8)
                     break;
                 
                 // FX0A: Wait for a key press, store the value of the key in V_regx
+                // TODO: Fix NOT HALTING problem
                 case 0x000A:
-                    if ( *chip8->keypad )
+                    int key_pressed = 0;
+
+                    for ( uint8_t i = 0; i < 16; i++)
                     {
-                        for ( uint8_t i = 0; i < 15; i++ )
+                        if ( chip8->keypad[i] != 0 )
                         {
-                            // We shift a mask across the bitmap for the keypad to check if bits are 1
-                            // We store the index value of the first bit that is 1 in V_regx
-                            if ( *chip8->keypad & ( 1 << i ) )
-                            {
-                                chip8->V_reg[x] = i;
-                            }
+                            chip8->V_reg[x] = i;
+                            key_pressed = 1;
                         }
                     }
-                    else
+                    
+                    if ( !key_pressed )
                     {
                         return;
                     }
-                    
+
                     chip8->pc += 2;
                     break;
                 
@@ -454,7 +462,7 @@ void chip8_cycle(chip8_t* chip8)
             break;
 
         default:
-            printf("Opcode unknown: 0x%X.\n", op);
+            //printf("Opcode unknown: 0x%X.\n", op);
             break;
     }
 

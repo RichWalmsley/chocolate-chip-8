@@ -174,18 +174,21 @@ void chip8_cycle(chip8_t* chip8)
                 // 8XY1: Sets V_regx to V_regx | V_regy
                 case 0x0001:
                     chip8->V_reg[x] = (chip8->V_reg[x] | chip8->V_reg[y]);
+                    chip8->V_reg[0xF] = 0;
                     chip8->pc += 2;
                     break;
                 
                 // 8XY2: Sets V_regx to V_regx & V_regy
                 case 0x0002:
                     chip8->V_reg[x] = (chip8->V_reg[x]) & chip8->V_reg[y];
+                    chip8->V_reg[0xF] = 0;
                     chip8->pc += 2;
                     break;
                 
                 // 8XY3: Sets V_regx to V_regx ^ V_regy
                 case 0x0003:
                     chip8->V_reg[x] = (chip8->V_reg[x]) ^ chip8->V_reg[y];
+                    chip8->V_reg[0xF] = 0;
                     chip8->pc += 2;
                     break;
 

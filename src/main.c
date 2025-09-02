@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include "chip8.h"
 
-#define ROM "roms/6-keypad.ch8"
+// TODO: Fix remaining issues from the 5-quirks.ch8 tests
+#define ROM "roms/5-quirks.ch8"
 
 #define ESC 27
 

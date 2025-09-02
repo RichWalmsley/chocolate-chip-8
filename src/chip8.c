@@ -386,22 +386,23 @@ void chip8_cycle(chip8_t* chip8)
                 // FX0A: Wait for a key press, store the value of the key in V_regx
                 // TODO: Fix NOT HALTING problem
                 case 0x000A:
-                    int key_pressed = 0;
+                    int8_t key_pressed = -1;
 
                     for ( uint8_t i = 0; i < 16; i++)
                     {
-                        if ( chip8->keypad[i] != 0 )
+                        if ( chip8->keypad[i] )
                         {
-                            chip8->V_reg[x] = i;
-                            key_pressed = 1;
+                            key_pressed = i;
+                            break;
                         }
                     }
                     
-                    if ( !key_pressed )
+                    if ( key_pressed == -1 )
                     {
                         return;
                     }
 
+                    chip8->V_reg[x] = key_pressed;
                     chip8->pc += 2;
                     break;
                 

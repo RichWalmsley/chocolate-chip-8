@@ -11,7 +11,6 @@
 
 chip8_t emulator;
 uint8_t keys[16] = {0};
-uint8_t keys_pressed[16] = {0};
 WINDOW *win;
 
 // TODO: Add unicode support for better visuals
@@ -67,30 +66,27 @@ int map_key( int ch )
     }
 }
 
+// TODO: Use a different library to detect up keys
 void poll_keys()
 {
-    memset( keys_pressed, 0, sizeof(keys_pressed)); // reset per-frame
-
     int ch;
 
-    while ( (ch = getch()) != ERR )
+    while ( ( ch = getch() ) != ERR )
     {
         int key = map_key( ch );
         if ( key != -1 )
         {
-            keys_pressed[key] = 1; // key pressed this frame
+            memset(keys, 0, sizeof(keys));
+            keys[key] = 1; // key pressed this frame
         }
 
-        if ( ch == 27 )
+        if ( ch == ESC )
         {
             echo();
             endwin();
-            exit(0);
+            exit( 0 );
         }
     }
-
-    // Update the emulator keypad
-    memcpy(keys, keys_pressed, sizeof(keys));
 }
 
 int main()
@@ -117,8 +113,8 @@ int main()
     win = initscr();
     cbreak();
     noecho();
-    nodelay(stdscr, TRUE); // non-blocking getch()
-    keypad(stdscr, TRUE); // enable arrow keys, etc.
+    nodelay( win, TRUE ); // non-blocking getch()
+    keypad( win, TRUE ); // enable arrow keys, etc.
     clear();
 
     // Resize the initialized window and add a order
@@ -132,6 +128,7 @@ int main()
         poll_keys();
         chip8_cycle( &emulator );
         draw( &emulator );
+        usleep( 1500 );
         refresh();
     }
 

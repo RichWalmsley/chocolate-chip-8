@@ -7,9 +7,9 @@ CHIP8 emulator written in C using raylib
 This was developed to run on linux.
 
 1. Make sure raylib amd64 /lib and /include are installed in /usr/
-2. 'sudo apt update && sudo apt install gcc gdb'
-3. 'make run' to run the application
-4. 'make debug' to debug the application in gdb
+2. `sudo apt update && sudo apt install gcc gdb`
+3. `make run` to run the application
+4. `make debug` to debug the application in gdb
 
 Currently, ROMs are loaded from the ROM folder into memory as a define at the top of main.
 

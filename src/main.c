@@ -1,32 +1,62 @@
-#include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "raylib.h"
 #include "chip8.h"
 
 // TODO: Fix remaining issues from the 5-quirks.ch8 tests
-#define ROM "roms/5-quirks.ch8"
+#define ROM "roms/6-keypad.ch8"
 
 #define ESC 27
 
 chip8_t emulator;
-uint8_t keys[16] = {0};
-WINDOW *win;
 
-// TODO: Add unicode support for better visuals
-void draw( chip8_t *chip8 )
+void draw(chip8_t* chip8)
 {
-    for ( int y = 0; y < HEIGHT; y++ )
+    BeginDrawing();
+
+    ClearBackground( BLACK );
+
+    for (int y = 0; y < HEIGHT; y++)
     {
-        for ( int x = 0; x < WIDTH; x++ )
+        for (int x = 0; x < WIDTH; x++)
         {
-            mvaddch(y + 1, x + 1, chip8->display_buffer[x + y * WIDTH] ? '#' : ' ');
+            if (chip8->display_buffer[x + (WIDTH * y)])
+            {
+                DrawRectangle(16 * x, 16 * y, 16, 16, BLUE);
+            }
         }
     }
+
+    EndDrawing();
 }
 
-int map_key( int ch )
+void handle_keys(chip8_t* chip8)
+{
+    chip8->keypad[0x1] = IsKeyDown(KEY_ONE);
+    chip8->keypad[0x2] = IsKeyDown(KEY_TWO);
+    chip8->keypad[0x3] = IsKeyDown(KEY_THREE);
+    chip8->keypad[0xC] = IsKeyDown(KEY_FOUR);
+
+    chip8->keypad[0x4] = IsKeyDown(KEY_Q);
+    chip8->keypad[0x5] = IsKeyDown(KEY_W);
+    chip8->keypad[0x6] = IsKeyDown(KEY_E);
+    chip8->keypad[0xD] = IsKeyDown(KEY_R);
+
+    chip8->keypad[0x7] = IsKeyDown(KEY_A);
+    chip8->keypad[0x8] = IsKeyDown(KEY_S);
+    chip8->keypad[0x9] = IsKeyDown(KEY_D);
+    chip8->keypad[0xE] = IsKeyDown(KEY_F);
+
+    chip8->keypad[0xA] = IsKeyDown(KEY_Z);
+    chip8->keypad[0x0] = IsKeyDown(KEY_X);
+    chip8->keypad[0xB] = IsKeyDown(KEY_C);
+    chip8->keypad[0xF] = IsKeyDown(KEY_V);
+}
+
+int map_key(int ch)
 {
     switch (ch)
     {
@@ -67,72 +97,59 @@ int map_key( int ch )
     }
 }
 
-// TODO: Use a different library to detect up keys
-void poll_keys()
-{
-    int ch;
-
-    while ( ( ch = getch() ) != ERR )
-    {
-        int key = map_key( ch );
-        if ( key != -1 )
-        {
-            memset(keys, 0, sizeof(keys));
-            keys[key] = 1; // key pressed this frame
-        }
-
-        if ( ch == ESC )
-        {
-            echo();
-            endwin();
-            exit( 0 );
-        }
-    }
-}
-
 int main()
 {
-    chip8_init( &emulator, keys );
+    chip8_init(&emulator);
 
-    printf( "Loading ROM file: %s\n", ROM );
-    int error = load_rom( &emulator, ROM );
+    printf("Loading ROM file: %s\n", ROM);
+    int error = load_rom(&emulator, ROM);
     switch( error )
     {
         case -1:
-            printf( "Byte read mismatch from ROM file.\n" );
+            printf("Byte read mismatch from ROM file.\n");
             return 0;
         
         case 0:
-            printf( "File \"%s\" not found.\n", ROM );
+            printf("File \"%s\" not found.\n", ROM);
             return 0;
         
         case 1:
-            printf( "Loaded ROM file \"%s\" successfully.\n", ROM );
+            printf("Loaded ROM file \"%s\" successfully.\n", ROM);
             break;
     }
 
-    win = initscr();
-    cbreak();
-    noecho();
-    nodelay( win, TRUE ); // non-blocking getch()
-    keypad( win, TRUE ); // enable arrow keys, etc.
-    clear();
+    const int screenWidth = WIDTH * 16;
+    const int screenHeight = HEIGHT * 16;
+    const int INSTRUCTIONS_PER_FRAME = 10;
 
-    // Resize the initialized window and add a order
-    wresize( win, HEIGHT + 2, WIDTH + 2 );
-    box( win, 0, 0 );
+    InitWindow(screenWidth, screenHeight, "Chocolate CHIP 8");
+    SetTargetFPS(60);
 
-    refresh();
-
-    while(1)
+    while(!WindowShouldClose())
     {
-        poll_keys();
-        chip8_cycle( &emulator );
-        draw( &emulator );
-        usleep( 1500 );
-        refresh();
+        handle_keys(&emulator);
+
+        // Run several instructions per frame
+        for (int i = 0; i < INSTRUCTIONS_PER_FRAME; i++)
+        {
+            chip8_cycle(&emulator);
+        }
+
+        // Decoupled timers to tick at 60Hz. 
+        if (emulator.delay_timer > 0)
+        {
+            emulator.delay_timer--;
+        }
+
+        if (emulator.sound_timer > 0)
+        {
+            emulator.sound_timer--;
+        }
+
+        draw(&emulator);
     }
 
-    endwin();
+    CloseWindow();
+
     return 0;
 }

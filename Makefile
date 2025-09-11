@@ -12,6 +12,7 @@ TARGET = $(BIN_DIR)/release/$(EXE)
 DEBUG_TARGET = $(BIN_DIR)/debug/$(EXE)
 CC = gcc
 CFLAGS = -I $(INC_DIR) -Wall -Wextra -Werror
+LIBS = -lraylib
 
 # Gather all source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -23,13 +24,13 @@ DEBUG_OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/debug/%.o, $(SRCS))
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)/release
 	@echo "Linking: $<"
-	$(CC) $(OBJS) -o $@ -lm -lncurses
+	$(CC) $(OBJS) -o $@ -lm $(LIBS)
 
 # Create debug executable
 $(DEBUG_TARGET): $(DEBUG_OBJS)
 	@mkdir -p $(BIN_DIR)/debug
 	@echo "Linking $(DEBUG_OBJS)"
-	$(CC) $(DEBUG_OBJS) -o $@ -lm -lncurses
+	$(CC) $(DEBUG_OBJS) -o $@ -lm $(LIBS)
 
 # Compile source files into object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INC_DIR)/*.h 

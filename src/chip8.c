@@ -24,18 +24,18 @@ const uint8_t fontset[] =
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-void chip8_init(chip8_t* chip8, const uint8_t* keypad)
+void chip8_init(chip8_t* chip8)
 {
     memset(chip8->ram, 0, sizeof(chip8->ram));
     memset(chip8->display_buffer, 0, sizeof(chip8->display_buffer));
     memset(chip8->V_reg, 0, sizeof(chip8->V_reg));
+    memset(chip8->keypad, 0, sizeof(chip8->keypad));
+    memset(chip8->stack, 0, sizeof(chip8->stack));
     chip8->I_reg = 0;
-    chip8->keypad = keypad;
     chip8->delay_timer = 0;
     chip8->sound_timer = 0;
     chip8->pc = 0x200;
     chip8->sp = 0;
-    memset(chip8->stack, 0, sizeof(chip8->stack));
 
     // Copy fontset to 0x0000
     memcpy(chip8->ram, fontset, sizeof(fontset));

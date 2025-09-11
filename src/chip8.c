@@ -387,7 +387,7 @@ void chip8_cycle(chip8_t* chip8)
                     break;
                 
                 // FX0A: Wait for a key press, store the value of the key in V_regx
-                // TODO: Fix NOT HALTING problem
+                // TODO: Fix NOT RELEASING problem
                 case 0x000A:
                     int8_t key_pressed = -1;
 
@@ -468,17 +468,6 @@ void chip8_cycle(chip8_t* chip8)
         default:
             //printf("Opcode unknown: 0x%X.\n", op);
             break;
-    }
-
-    // Update timers. Decrement timers if they are greater than 0.
-    if (chip8->delay_timer > 0)
-    {
-        chip8->delay_timer -= 1;
-    }
-
-    if (chip8->sound_timer > 0)
-    {
-        chip8->sound_timer -= 1;
     }
 }
 

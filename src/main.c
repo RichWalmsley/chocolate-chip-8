@@ -6,8 +6,7 @@
 #include "raylib.h"
 #include "chip8.h"
 
-// TODO: Fix remaining issues from the 5-quirks.ch8 tests
-#define ROM "roms/6-keypad.ch8"
+#define ROM "roms/glitchGhost.ch8"
 
 #define ESC 27
 
@@ -120,7 +119,7 @@ int main()
 
     const int screenWidth = WIDTH * 16;
     const int screenHeight = HEIGHT * 16;
-    const int INSTRUCTIONS_PER_FRAME = 10;
+    const int INSTRUCTIONS_PER_FRAME = 20;
 
     InitWindow(screenWidth, screenHeight, "Chocolate CHIP 8");
     SetTargetFPS(60);
@@ -143,6 +142,7 @@ int main()
 
         if (emulator.sound_timer > 0)
         {
+            // TODO: Add beep
             emulator.sound_timer--;
         }
 

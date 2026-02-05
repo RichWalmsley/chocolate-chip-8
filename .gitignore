@@ -46,8 +46,8 @@
 *.pdb
 
 # Build Folders
-/build
-/bin
+/build/
+/bin/
 
 # Kernel Module Compile Results
 *.mod*
